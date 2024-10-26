@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://unpkg.com/undocs/schema/config.json
+
+name: "Mapl"
+shortDescription: "A low overhead framework"
+description: "Based on web standards and works on all runtimes."
+github: "mapljs/app"
+themeColor: "indigo"
+landing:
+  heroCode:
+    lang: js
+    title: "server.mjs"
+    content: |
+      import { jitc, router } from "@mapl/app";
+
+      // Create a router
+      const app = router()
+        .get('/', () => 'Hi')
+        .get('/*/name', (c) => c.params[0])
+        .post('/json', {
+          type: 'json',
+          fn: async (c) => c.req.json()
+        });
+
+      // Compile the application just-in-time to a fetch function
+      const fetch = jitc(app);
