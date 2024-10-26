@@ -3,9 +3,9 @@
   "name": "docs",
   "scripts": {
     "dev": "undocs dev",
-    "build": "undocs build"
+    "build": "bun patch.js && undocs build"
   },
   "devDependencies": {
-    "undocs": "latest"
+    "undocs": "0.2.30"
   }
 }

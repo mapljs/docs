@@ -5,6 +5,7 @@ shortDescription: "A low overhead framework"
 description: "Based on web standards and works on all runtimes."
 github: "mapljs/app"
 themeColor: "indigo"
+url: mapl.pages.dev
 landing:
   heroCode:
     lang: js
