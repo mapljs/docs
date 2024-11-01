@@ -46,7 +46,7 @@ import { staticException, dynamicException } from '@mapl/app';
 const authException = staticException();
 
 // This exception can hold payloads
-const bodyException = dynamicException<number>();
+const bodyException = dynamicException<string>();
 ```
 
 To handle exceptions, use `app.catch` or `app.catchAll`:
