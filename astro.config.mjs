@@ -31,14 +31,11 @@ export default defineConfig({
         {
           tag: "style",
           content: `
-            @media (min-width: 615px) {
+            @media (min-width: 800px) {
               .sl-link-button {
-                padding-top: 0.5rem !important;
-                padding-bottom: 0.5rem !important;
-                padding-left: 1rem !important;
-                padding-right: 1rem !important;
-                font-size: 0.875rem !important;
-                line-height: 1.25rem; !important;
+                padding: 0.5rem 1.2rem 0.5rem 1.3rem !important;
+                border-radius: 24px !important;
+                font-size: 15px !important;
               }
             }
           `,
