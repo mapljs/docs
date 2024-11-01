@@ -18,7 +18,7 @@ let files = await Array.fromAsync(pattern.scan(SRC_DIR));
 async function rebuild() {
   return Promise.all(
     files.map(
-      (file) => $`d2 ${SRC_DIR + file} ${OUT_DIR + file.slice(0, -2)} && d2 fmt ${SRC_DIR + file}`
+      (file) => $`d2 ${SRC_DIR + file} ${OUT_DIR + file.slice(0, -2)}svg && d2 fmt ${SRC_DIR + file}`
     )
   );
 }
