@@ -49,7 +49,7 @@ const authException = staticException();
 const bodyException = dynamicException<number>();
 ```
 
-To handle exceptions, use `app.catch`:
+To handle exceptions, use `app.catch` or `app.catchAll`:
 ```ts
 // Handle static exception
 app.catch(authException, (c) => {

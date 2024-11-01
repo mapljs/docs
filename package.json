@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
-    "preview": "astro preview",
+    "preview": "bun run build && astro preview",
     "astro": "astro",
     "build:diagrams": "bun diagrams/build.ts",
     "watch:diagrams": "bun diagrams/watch.ts"
