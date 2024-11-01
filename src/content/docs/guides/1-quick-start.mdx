@@ -1,0 +1,75 @@
+---
+title: Quick start
+description: Getting started with Mapl.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+You can install Mapl from [npm](https://npmjs.com/package/@mapl/app).
+```sh
+npm i @mapl/app
+```
+
+Create a new file and add the following code:
+```ts title="server.ts"
+import { jitc, router } from '@mapl/app';
+
+// Create a router
+const app = router()
+  // Add a route that matches GET requests to '/'
+  .get('/', () => 'Hi');
+
+// Build the fetch function
+const fetch = jitc(app);
+
+// Export the function to be executed
+export default { fetch };
+```
+
+Then run the file with [Bun](//bun.sh) or [Deno](//deno.land).
+```sh
+# Bun
+bun server.ts
+
+# Deno
+deno serve server.ts --port 3000
+```
+
+And done! We just build a simple web server running on [127.0.0.1:3000](http://127.0.0.1:3000).
+
+### Explanation
+
+<Steps>
+
+1. First we create a router instance by calling `router()`.
+    ```ts
+    const app = router();
+    ```
+
+2. Then we add an endpoint that returns `Hi` as a response.
+    ```ts
+    const app = router()
+      .get('/', () => 'Hi');
+    ```
+
+    You can return [anything](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#body)
+    that is supported by the [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) constructor,
+    which includes `string`, `ArrayBuffer`, `Blob`, `ReadableStream`, ...
+
+    Chaining is also possible since every method returns the current app instance.
+    ```ts
+    const app = router()
+      .get('/', () => 'Hi')
+      .get('/hello', () => 'Hello');
+    ```
+
+3. Then we use the compiler to generate a function that takes in
+    a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object and returns a
+    [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object.
+    ```ts
+    const fetch = jitc(app);
+    ```
+
+4. Finally we export the function correctly for the runtime to execute.
+
+</Steps>

@@ -1,0 +1,116 @@
+---
+title: Router
+description: Split your application with routes
+---
+
+Mapl handles static routes, path parameters and wildcards.
+```ts
+router()
+  // Capture and return the path value
+  .get('/*/name', (c) => c.params[0]) // '/reve/name' -> 'reve'
+  // Capture everything after '/'
+  .get('/item/**', (c) => c.params[0]) // '/item/a/b' -> 'a/b'
+  // Multiple params
+  .get('/*/item/**', (c) => `${c.params[0]}: ${c.params[1]}`);
+```
+
+Mapl supports `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS` and `TRACE` method by default.
+```ts
+router()
+  // GET method
+  .get(...)
+  // POST method
+  .post(...) // Similar method names for other methods
+  // Handle all method
+  .any(...);
+```
+
+## Sub-routers
+You can extend all routes of another instance.
+```ts
+const app = router()
+  .get('/', () => 'Hi');
+
+const anotherApp = router()
+  .get('/', () => 'Hello API users!');
+
+// To extend with no prefix, use '/' as the prefix value
+app.route('/api', anotherApp);
+```
+
+After calling `app.route`, the `app` instance has two registered routes, `/` and `/api`.
+
+## Compilation
+Under the hood, Mapl inlines route patterns into optimized code paths to improve performance.
+
+For example these routes:
+```ts
+router()
+  .get('/', () => 'Hi');
+  .get('/*/name', (c) => c.params[0]);
+```
+
+Will compile into:
+```ts
+// This is beautified with added comments for readability
+// Mapl version 0.0.22
+let __mapl_m = __req.method;
+if (__mapl_m === "GET") {
+  // Get the full url
+  let __mapl_u = __req.url;
+
+  // Get path start and path end index
+  let __mapl_ps = __mapl_u.indexOf('/', 12) + 1;
+
+  // This can be used later for query parsing
+  let __mapl_pe = __mapl_u.indexOf('?', __mapl_ps);
+
+  // This is a way to slice the part from the url without branching
+  let __req_p = __mapl_u.substring(__mapl_ps, __mapl_pe >>> 0);
+
+  // Match static routes
+  if (__req_p === "") {
+    // This is compiled by Mapl, not the router
+    return new Response(f2());
+  } else {
+    // Match route patterns
+    let __req_pl = __req_p.length;
+    {
+      let __req_cpi = __req_p.indexOf('/', 0);
+      if (__req_cpi !== -1 && __req_cpi !== 0) {
+        let __req_ps = [__req_p.substring(0, __req_cpi)];
+
+        // If chaining is faster in JSC
+        if (__req_pl > __req_cpi + 4)
+          if (__req_p.charCodeAt(__req_cpi + 1) === 110)
+            if (__req_p.charCodeAt(__req_cpi + 2) === 97)
+              if (__req_p.charCodeAt(__req_cpi + 3) === 109)
+                if (__req_p.charCodeAt(__req_cpi + 4) === 101) {
+                  // This is compiled by Mapl, not the router
+                  if (__req_pl === __req_cpi + 5) {
+                    // Use this to append headers in macros
+                    // To skip a property access
+                    let __mapl_h = [];
+
+                    // Context object is only initialized when needed
+                    let __mapl_rc = {
+                      status: 200,
+                      req: __req,
+                      headers: __mapl_h,
+                      params: __req_ps
+                    };
+
+                    return new Response(f3(__mapl_rc), __mapl_rc);
+                  }
+                }
+      }
+    }
+  }
+}
+
+// Not found response
+return __mapl_r404;
+```
+
+Mapl generates code for the handlers and the router generates
+code for path and request method matching.

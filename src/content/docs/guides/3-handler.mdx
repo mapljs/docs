@@ -1,0 +1,79 @@
+---
+title: Handler
+description: Intro to route handlers
+---
+
+A handler is a function that recieves a [Context](/api/context) object and return a response.
+
+As in previous examples, handlers can return [anything](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#body)
+that is supported by the [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) constructor.
+```ts
+app.get('/', () => 'Hi');
+```
+
+The handler can access the [Context](/api/context) object, which contains the original request object and response options.
+```ts
+app.get('/', (c) => {
+  // Set status code. Default value is 200
+  c.status = 201;
+
+  // This property is not set by default as it's not frequently used
+  c.statusText = 'Hi';
+
+  // Add a header pair
+  c.headers.push(['Server', 'Mapl']);
+});
+```
+
+Note that response headers are stored as key-value pairs in an array.
+
+<details>
+<summary>Why store headers in an array instead of an object?</summary>
+
+To have multiple header values, the headers need to be appended later to the
+[Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object of the final [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response),
+which is much slower than arrays and objects as [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) has to do additional
+operations to normalize the header key and value **on insertion**.
+
+Furthermore, JS engines often create internal structures for optimizing property accesses, which leads to more memory being used compared to arrays.
+
+</details>
+
+Mapl also includes handlers to send different types of data.
+
+- To return HTML directly without appending headers:
+    ```ts
+    app.get('/page/*', {
+      type: 'html',
+      fn: (c) => `<p>${c.params[0]}</p>`
+    });
+    ```
+
+    This is in fact faster than writing it using normal handlers (try to see it yourself :]).
+
+- To return JSON directly without appending headers:
+    ```ts
+    app.get('/info/*', {
+      type: 'json',
+      fn: (c) => ({
+        name: c.params[0],
+        id: Math.random()
+      })
+    });
+    ```
+
+    This is also faster than writing it using normal handlers, as it uses the same optimization as HTML handlers.
+
+- To return static content:
+    ```ts
+    app.get('/', {
+      type: 'static',
+      body: 'Hi',
+      options: { status: 200 }
+    });
+    ```
+
+    The `body` and `options` get cached under the hood to reduce unnecessary operations on every request.
+
+If the handler function returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) object,
+it must be marked as an `async` function for the compiler to detect and generate correct code.
