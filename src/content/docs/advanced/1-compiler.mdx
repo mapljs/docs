@@ -7,7 +7,7 @@ To provide these abstractions without sacrifising performance, Mapl uses a compi
 to optimize the fetch handler before request time.
 
 ## JIT compilation
-Mapl exposes a `jitc(app)` function to compile an instance to a fetch handler with `new Function()`:
+Mapl exposes `jitc()` to compile an instance to a fetch handler with `new Function()`:
 ```ts
 import { jitc } from '@mapl/app';
 
@@ -15,7 +15,7 @@ const fetch = jitc(app);
 ```
 
 ## AOT compilation
-You can precompile the fetch handler content with `aotfn(app)`:
+You can precompile the fetch handler content with `aotfn()`:
 ```ts
 import { aotfn } from '@mapl/app';
 

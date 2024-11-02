@@ -1,0 +1,13 @@
+---
+title: Macros
+description: Inject code to Mapl control flow
+---
+
+Macro is a mechanism to inject code into Mapl middleware phase.
+```ts
+app.inline((result, state) => {
+  // Inject code
+});
+```
+
+You can see the type definition in [middleware.ts](https://github.com/mapljs/app/blob/main/src/router/types/middleware.ts#L8).
