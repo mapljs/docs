@@ -1,0 +1,36 @@
+---
+title: Compiler
+description: Details about the Mapl compiler
+---
+
+To provide these abstractions without sacrifising performance, Mapl uses a compiler
+to optimize the fetch handler before request time.
+
+## JIT compilation
+Mapl exposes a `jitc(app)` function to compile an instance to a fetch handler with `new Function()`:
+```ts
+import { jitc } from '@mapl/app';
+
+const fetch = jitc(app);
+```
+
+## AOT compilation
+You can precompile the fetch handler content with `aotfn(app)`:
+```ts
+import { aotfn } from '@mapl/app';
+
+writeFileSync('fetch.mjs', `export default ${aotfn(app)};`);
+```
+
+Then load with necessary dependencies to create a fetch function:
+```ts
+import createFetch from './fetch.mjs';
+import { aotdeps } from '@mapl/app';
+
+// Create a fetch function without building the fetch function content
+const fetch = createFetch(aotdeps(app));
+```
+
+This approach often results in 5x faster startup time than JIT compilation.
+
+Since AOT compilation does not use `new Function()`, this unblocks Mapl on edge runtimes where `eval()` and `new Function()` are not allowed (Cloudflare Workers, Vercel Edge, ...).
