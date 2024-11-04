@@ -19,11 +19,11 @@ const app = router()
   // Add a route that matches GET requests to '/'
   .get('/', () => 'Hi');
 
-// Build the fetch function
-const fetch = jitc(app);
+// Build the app
+const result = await jitc(app);
 
 // Export the function to be executed
-export default { fetch };
+export default { fetch: result.fetch };
 ```
 
 Then run the file with [Bun](//bun.sh) or [Deno](//deno.land).
@@ -63,11 +63,11 @@ And done! We just build a simple web server running on [127.0.0.1:3000](http://1
       .get('/hello', () => 'Hello');
     ```
 
-3. Then we use the compiler to generate a function that takes in
-    a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object and returns a
-    [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object.
+3. Then we use the compiler to create an object that contains a request handler.
     ```ts
-    const fetch = jitc(app);
+    const result = await jitc(app);
+
+    result.fetch; // This is the request handler
     ```
 
 4. Finally we export the function correctly for the runtime to execute.

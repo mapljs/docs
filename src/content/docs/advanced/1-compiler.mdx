@@ -11,7 +11,9 @@ Mapl exposes `jitc()` to compile an instance to a fetch handler with `new Functi
 ```ts
 import { jitc } from '@mapl/app';
 
-const fetch = jitc(app);
+const result = await jitc(app);
+
+result.fetch; // The fetch function
 ```
 
 ## AOT compilation
@@ -27,8 +29,7 @@ Then load with necessary dependencies to create a fetch function:
 import createFetch from './fetch.mjs';
 import { aotdeps } from '@mapl/app';
 
-// Create a fetch function without building the fetch function content
-const fetch = createFetch(aotdeps(app));
+const result = await createFetch(aotdeps(app));
 ```
 
 This approach often results in 5x faster startup time than JIT compilation.
