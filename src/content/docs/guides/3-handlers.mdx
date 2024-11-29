@@ -79,9 +79,8 @@ If the handler function returns a [Promise](https://developer.mozilla.org/en-US/
 it must be marked as an `async` function for the compiler to detect and generate correct code.
 
 ### Prebuilts
-This feature runs the handler with a sample `GET` request to the corresponding pathname.
-
-The result is then cached and will be cloned and returned later in request time
+This feature runs the handler with a sample `GET` request to the corresponding path, the
+result [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) is cached and served later in request time.
 ```ts
 app.build('/', () => 'Hi');
 ```
