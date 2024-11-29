@@ -77,3 +77,31 @@ Mapl also includes handlers to send different types of data.
 
 If the handler function returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) object,
 it must be marked as an `async` function for the compiler to detect and generate correct code.
+
+### Prebuilts
+This feature runs the handler with a sample `GET` request to the corresponding pathname.
+
+The result is then cached and will be cloned and returned later in request time
+```ts
+app.build('/', () => 'Hi');
+```
+
+You can do any expensive operations inside the handler without affecting request performance.
+```ts
+app.build('/', (c) => {
+  const result = runExpensiveOperation(c.req);
+  return `Your result: ${result}`;
+});
+```
+
+This is designed to mimic [Bun static routes](https://bun.sh/docs/api/http#static-routes) behavior,
+which means `HEAD` and `OPTIONS` methods are also handled automatically.
+
+You can also make it runs faster in Bun by handing the routes to Bun directly:
+```ts
+const result = await jitc(app, {
+  exposeStatic: true
+});
+
+result.static;
+```

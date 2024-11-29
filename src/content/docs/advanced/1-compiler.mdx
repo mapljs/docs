@@ -35,3 +35,24 @@ const result = await createFetch(aotdeps(app));
 This approach often results in 5x faster startup time than JIT compilation.
 
 Since AOT compilation does not use `new Function()`, this unblocks Mapl on edge runtimes where `eval()` and `new Function()` are not allowed (Cloudflare Workers, Vercel Edge, ...).
+
+## Compiler options
+You can pass an option object to `aotfn` and `jitc`.
+
+### `exposeStatic`
+If set to true, prebuilt routes will be exposed as the `static`
+property in the final compilation result instead of registered to the router.
+
+Example usage with Bun:
+```ts
+import { router, jitc } from '@mapl/app';
+
+// Build a static route
+const app = router().build('/', () => 'Hi');
+
+// Serve directly as Bun handles `fetch` and
+// `static` property automatically
+export default await jitc(app, {
+  exposeStatic: true
+});
+```
