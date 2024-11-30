@@ -46,70 +46,71 @@ Under the hood, Mapl inlines route patterns into optimized code paths to improve
 For example these routes:
 ```ts
 router()
-  .get('/', () => 'Hi');
+  .get('/', () => 'Hi')
   .get('/*/name', (c) => c.params[0]);
 ```
 
 Will compile into:
 ```ts
 // This is beautified with added comments for readability
-// Mapl version 0.0.22
-let __mapl_m = __req.method;
-if (__mapl_m === "GET") {
-  // Get the full url
-  let __mapl_u = __req.url;
+// Mapl version 0.1.6
+(__req) => {
+  switch (__req.method) {
+    case "GET": {
+      // Get the full url
+      let __mapl_u = __req.url,
+        // Get path start
+        __mapl_ps = __mapl_u.indexOf('/', 12) + 1,
+        // Path end can be used later for query parsing
+        __mapl_pe = __mapl_u.indexOf('?', __mapl_ps),
+        // This is a way to slice the part from the url without branching
+        __req_p = __mapl_u.substring(__mapl_ps, __mapl_pe >>> 0);
 
-  // Get path start and path end index
-  let __mapl_ps = __mapl_u.indexOf('/', 12) + 1;
+      // Match static routes
+      if (__req_p === "") {
+        return new Response(f1());
+      }
 
-  // This can be used later for query parsing
-  let __mapl_pe = __mapl_u.indexOf('?', __mapl_ps);
+      // Match route patterns
+      else {
+        let __req_pl = __req_p.length;
 
-  // This is a way to slice the part from the url without branching
-  let __req_p = __mapl_u.substring(__mapl_ps, __mapl_pe >>> 0);
+        {
+          let __req_cpi = __req_p.indexOf('/', 0);
+          if (__req_cpi !== -1 && __req_cpi !== 0) {
+            let __req_ps = [__req_p.substring(0, __req_cpi)];
 
-  // Match static routes
-  if (__req_p === "") {
-    // This is compiled by Mapl, not the router
-    return new Response(f2());
-  } else {
-    // Match route patterns
-    let __req_pl = __req_p.length;
-    {
-      let __req_cpi = __req_p.indexOf('/', 0);
-      if (__req_cpi !== -1 && __req_cpi !== 0) {
-        let __req_ps = [__req_p.substring(0, __req_cpi)];
+            // If chaining is faster in some cases
+            if (__req_pl > __req_cpi + 4)
+              if (__req_p.charCodeAt(__req_cpi + 1) === 110)
+                if (__req_p.charCodeAt(__req_cpi + 2) === 97)
+                  if (__req_p.charCodeAt(__req_cpi + 3) === 109)
+                    if (__req_p.charCodeAt(__req_cpi + 4) === 101) {
+                      if (__req_pl === __req_cpi + 5) {
+                        // Use this to append headers in macros
+                       	// To skip a property access
+                        let __mapl_h = [];
 
-        // If chaining is faster in JSC
-        if (__req_pl > __req_cpi + 4)
-          if (__req_p.charCodeAt(__req_cpi + 1) === 110)
-            if (__req_p.charCodeAt(__req_cpi + 2) === 97)
-              if (__req_p.charCodeAt(__req_cpi + 3) === 109)
-                if (__req_p.charCodeAt(__req_cpi + 4) === 101) {
-                  // This is compiled by Mapl, not the router
-                  if (__req_pl === __req_cpi + 5) {
-                    // Use this to append headers in macros
-                    // To skip a property access
-                    let __mapl_h = [];
+                        // Context object is only created when needed
+                        let __mapl_rc = {
+                          status: 200,
+                          req: __req,
+                          headers: __mapl_h,
+                          params: __req_ps
+                        };
 
-                    // Context object is only initialized when needed
-                    let __mapl_rc = {
-                      status: 200,
-                      req: __req,
-                      headers: __mapl_h,
-                      params: __req_ps
-                    };
-
-                    return new Response(f3(__mapl_rc), __mapl_rc);
-                  }
-                }
+                        return new Response(f2(__mapl_rc), __mapl_rc);
+                      }
+                    }
+          }
+        }
       }
     }
   }
-}
 
-// Not found response
-return __mapl_r404;
+  // Default 404
+  return __mapl_r404;
+}
 ```
 
 Mapl generates code for the handlers and the router generates
