@@ -24,8 +24,8 @@ export default defineConfig({
         },
         {
           label: "Advanced",
-          autogenerate: { directory: "advanced" }
-        }
+          autogenerate: { directory: "advanced" },
+        },
       ],
 
       expressiveCode: {

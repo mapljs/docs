@@ -1,26 +1,29 @@
 import { join } from 'node:path/posix';
 import { Glob, $ } from 'bun';
 import { watch } from 'node:fs';
+import { modify } from './modify.js';
 
-$.env({
-  D2_LAYOUT: 'elk',
-  D2_THEME: '200',
+const ignored = ['shared.d2'];
 
-  D2_SKETCH: 'true',
-});
+export const SRC_DIR = join(import.meta.dir, 'src/');
+export const OUT_DIR = join(import.meta.dir, '../public/diagrams/');
 
-const SRC_DIR = join(import.meta.dir, 'src/');
-const OUT_DIR = join(import.meta.dir, '../public/diagrams/');
-const pattern = new Glob('*.d2');
+export const d2Pattern = new Glob('*.d2');
+export const svgPattern = new Glob('*.svg');
 
-let files = await Array.fromAsync(pattern.scan(SRC_DIR));
+let files = await Array.fromAsync(d2Pattern.scan(SRC_DIR));
 
 async function rebuild() {
-  return Promise.all(
+  await Promise.all(
     files.map(
-      (file) => $`d2 ${SRC_DIR + file} ${OUT_DIR + file.slice(0, -2)}svg && d2 fmt ${SRC_DIR + file}`
+      async (file) => {
+        if (ignored.includes(file)) return;
+        await $`d2 ${SRC_DIR + file} ${OUT_DIR + file.slice(0, -2)}svg && d2 fmt ${SRC_DIR + file}`;
+      }
     )
   );
+
+  await modify();
 }
 rebuild();
 
@@ -28,10 +31,10 @@ export function watchChanges() {
   watch(SRC_DIR, async (type) => {
     if (type === 'rename') {
       console.log('Reloading files...');
-      files = await Array.fromAsync(pattern.scan(SRC_DIR));
+      files = await Array.fromAsync(d2Pattern.scan(SRC_DIR));
     }
 
     console.log('Recompiling...');
-    await rebuild();
+    await rebuild().catch(console.error);
   });
 }
