@@ -20,7 +20,7 @@ You can precompile the fetch handler content with `aotfn()`:
 ```ts
 import { aotfn } from '@mapl/app';
 
-writeFileSync('fetch.mjs', `export default ${aotfn(app)};`);
+writeFileSync('fetch.mjs', `export default ${await aotfn(app)};`);
 ```
 
 Then load with necessary dependencies to create a fetch function:
@@ -28,10 +28,10 @@ Then load with necessary dependencies to create a fetch function:
 import createFetch from './fetch.mjs';
 import { aotdeps } from '@mapl/app';
 
-const result = await createFetch(aotdeps(app));
+const result = await createFetch(await aotdeps(app));
 ```
 
-This approach often results in 5x faster startup time than JIT compilation.
+This approach often results in instant startup time as it doesn't need to build the entire function on every run.
 
 Since AOT compilation does not use `new Function()`, this unblocks Mapl on edge runtimes where `eval()` and `new Function()` are not allowed (Cloudflare Workers, Vercel Edge, ...).
 
