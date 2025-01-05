@@ -7,11 +7,11 @@ Mapl handles static routes, path parameters and wildcards.
 ```ts
 router()
   // Capture and return the path value
-  .get('/*/name', (c) => c.params[0]) // '/reve/name' -> 'reve'
+  .get('/*/name', (params) => params[0]) // '/reve/name' -> 'reve'
   // Capture everything after '/'
-  .get('/item/**', (c) => c.params[0]) // '/item/a/b' -> 'a/b'
+  .get('/item/**', (params) => params[0]) // '/item/a/b' -> 'a/b'
   // Multiple params
-  .get('/*/item/**', (c) => `${c.params[0]}: ${c.params[1]}`);
+  .get('/*/item/**', (params) => `${params[0]}: ${params[1]}`);
 ```
 
 Mapl supports `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS` and `TRACE` method by default.
@@ -47,69 +47,52 @@ For example these routes:
 ```ts
 router()
   .get('/', () => 'Hi')
-  .get('/*/name', (c) => c.params[0]);
+  .get('/*/name', (params) => params[0]);
 ```
 
 Will compile into:
 ```ts
 // This is beautified with added comments for readability
-// Mapl version 0.1.6
-(__req) => {
-  switch (__req.method) {
+// Mapl version 0.5.1
+(r) => {
+  switch (r.method) {
     case "GET": {
-      // Get the full url
-      let __mapl_u = __req.url,
-        // Get path start
-        __mapl_ps = __mapl_u.indexOf('/', 12) + 1,
-        // Path end can be used later for query parsing
-        __mapl_pe = __mapl_u.indexOf('?', __mapl_ps),
-        // This is a way to slice the part from the url without branching
-        __req_p = __mapl_u.substring(__mapl_ps, __mapl_pe >>> 0);
+      // Fast path parsing
+      let mu = r.url,
+        ms = mu.indexOf('/', 12) + 1,
+        me = mu.indexOf('?', ms),
+        p = mu.substring(ms, me >>> 0);
 
       // Match static routes
-      if (__req_p === "") {
+      if (p === "") {
         return new Response(f1());
       }
 
-      // Match route patterns
-      else {
-        let __req_pl = __req_p.length;
-
-        {
-          let __req_cpi = __req_p.indexOf('/');
-          if (__req_cpi !== -1 && __req_cpi !== 0) {
-            let __req_ps = [__req_p.substring(0, __req_cpi)];
-
-            // If chaining is faster in some cases
-            if (__req_pl > __req_cpi + 4)
-              if (__req_p.charCodeAt(__req_cpi + 1) === 110)
-                if (__req_p.charCodeAt(__req_cpi + 2) === 97)
-                  if (__req_p.charCodeAt(__req_cpi + 3) === 109)
-                    if (__req_p.charCodeAt(__req_cpi + 4) === 101) {
-                      if (__req_pl === __req_cpi + 5) {
-                        // Use this to append headers in macros
-                       	// To skip a property access
-                        let __mapl_h = [];
-
-                        // Context object is only created when needed
-                        let __mapl_rc = {
-                          status: 200,
-                          req: __req,
-                          headers: __mapl_h,
-                          params: __req_ps
-                        };
-
-                        return new Response(f2(__mapl_rc), __mapl_rc);
-                      }
+      // Need the path length for later checks
+      let l = p.length;
+      {
+        // Match the path parameter
+        let j = p.indexOf('/');
+        if (j > 0) {
+          // Only create the path parameter list when necessary
+          let q = [p.substring(0, j)];
+          if (l > j + 4)
+            if (p.charCodeAt(j + 1) === 110)
+              if (p.charCodeAt(j + 2) === 97)
+                if (p.charCodeAt(j + 3) === 109)
+                  if (p.charCodeAt(j + 4) === 101) {
+                    if (l === j + 5) {
+                      return new Response(f2(q));
                     }
-          }
+                  }
         }
       }
+      break;
     }
   }
 
-  // Default 404
-  return __mapl_r404;
+  // Stored 404 response with no body (no cloning needed)
+  return mnf;
 }
 ```
 

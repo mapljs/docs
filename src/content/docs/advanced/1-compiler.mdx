@@ -15,6 +15,17 @@ const result = await jitc(app);
 result.fetch; // The fetch function
 ```
 
+### Faster compilation
+For faster compilation and more minimal output, you can use `jitcQuick`.
+```ts
+import { jitcQuick } from '@mapl/app';
+
+// Same result like before
+const result = await jitcQuick(app);
+```
+
+`jitcQuick` skips route pattern compilation and use the dynamic matcher from `@mapl/router` instead.
+
 ## AOT compilation
 You can precompile the fetch handler content with `aotfn()`:
 ```ts
@@ -31,12 +42,10 @@ import { aotdeps } from '@mapl/app';
 const result = await createFetch(await aotdeps(app));
 ```
 
-This approach often results in instant startup time as it doesn't need to build the entire function on every run.
-
 Since AOT compilation does not use `new Function()`, this unblocks Mapl on edge runtimes where `eval()` and `new Function()` are not allowed (Cloudflare Workers, Vercel Edge, ...).
 
 ## Compiler options
-You can pass an option object to `aotfn` and `jitc`.
+You can pass an option object to `aotfn`, `jitc` and `jitcQuick`.
 
 ### `exposeStatic`
 If set to true, prebuilt routes will be exposed as the `static`
