@@ -23,6 +23,10 @@ export default defineConfig({
           autogenerate: { directory: "guides" },
         },
         {
+          label: "Utilities",
+          autogenerate: { directory: "utils" },
+        },
+        {
           label: "Advanced",
           autogenerate: { directory: "advanced" },
         },

@@ -9,6 +9,11 @@ As in previous examples, handlers can return [anything](https://developer.mozill
 that is supported by the [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) constructor.
 ```ts
 app.get('/', () => 'Hi');
+// Is a shorthand for
+app.get('/', {
+  type: 'buffer',
+  fn: () => 'Hi'
+});
 ```
 
 The handler can access the [Context](/api/context) object, which contains the original request object and response options.
