@@ -22,6 +22,7 @@ app.get('/', (c) => {
   c.status = 201; // Set status code. Default value is 200
   c.statusText = 'Hi'; // Set status text
   c.headers.push(['Server', 'Mapl']); // Add a header pair
+  console.log(c.req.headers); // Log request headers
   return 'Hi';
 });
 
