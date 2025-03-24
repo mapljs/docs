@@ -7,11 +7,11 @@ Mapl handles static routes, path parameters and wildcards.
 ```ts
 router()
   // Capture and return the path value
-  .get('/*/name', (params) => params[0]) // '/reve/name' -> 'reve'
+  .get('/:user/name', (user) => user) // '/reve/name' -> 'reve'
   // Capture everything after '/'
-  .get('/item/**', (params) => params[0]) // '/item/a/b' -> 'a/b'
+  .get('/item/*', (item) => item) // '/item/a/b' -> 'a/b'
   // Multiple params
-  .get('/*/item/**', (params) => `${params[0]}: ${params[1]}`);
+  .get('/:category/item/*', (category, id) => `${category}: ${id}`);
 ```
 
 Mapl supports `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS` and `TRACE` method by default.
@@ -47,54 +47,56 @@ For example these routes:
 ```ts
 router()
   .get('/', () => 'Hi')
-  .get('/*/name', (params) => params[0]);
+  .get('/:user/name', (user) => user);
 ```
 
 Will compile into:
 ```ts
 // This is beautified with added comments for readability
-// Mapl version 0.5.1
-(r) => {
-  switch (r.method) {
+// @mapl/web@0.0.5
+(mwr) => {
+  switch (mwr.method) {
     case "GET": {
-      // Fast path parsing
-      let mu = r.url,
-        ms = mu.indexOf('/', 12) + 1,
-        me = mu.indexOf('?', ms),
-        p = mu.substring(ms, me >>> 0);
+      // Manual path parsing
+      let mwru = mwr.url,
+        ps = mwru.indexOf("/", 12) + 1,
+        pe = mwru.indexOf("?", ps),
+        p = pe === -1 ? mwru.slice(ps) : mwru.substring(ps, pe);
 
       // Match static routes
       if (p === "") {
-        return new Response(f1());
+        return new Response(mp1());
       }
 
-      // Need the path length for later checks
+      // Dynamic path matching
       let l = p.length;
       {
-        // Match the path parameter
-        let j = p.indexOf('/');
+        let j = p.indexOf("/");
         if (j > 0) {
-          // Only create the path parameter list when necessary
-          let q = [p.substring(0, j)];
-          if (l > j + 4)
-            if (p.charCodeAt(j + 1) === 110)
-              if (p.charCodeAt(j + 2) === 97)
-                if (p.charCodeAt(j + 3) === 109)
-                  if (p.charCodeAt(j + 4) === 101) {
-                    if (l === j + 5) {
-                      return new Response(f2(q));
-                    }
-                  }
+          let q0 = p.slice(0, j);
+          if (p.startsWith("name", j + 1)) {
+            if (l === j + 5) {
+              return new Response(mp2(q0));
+            }
+          }
         }
       }
       break;
     }
   }
-
-  // Stored 404 response with no body (no cloning needed)
-  return mnf;
+  return mwnf;
 }
 ```
 
-Mapl generates code for the handlers and the router generates
-code for path and request method matching.
+`@mapl/web` underlying router (`@mapl/router`) performs really well compared to others:
+
+| benchmark             |              avg |         min |         p75 |         p99 |         max |
+| --------------------- | ---------------- | ----------- | ----------- | ----------- | ----------- |
+| (api) mapl - compiled | ` 21.59 µs/iter` | ` 19.08 µs` | ` 20.35 µs` | ` 43.58 µs` | `426.21 µs` |
+| (api) rou3            | `112.39 µs/iter` | ` 97.03 µs` | `108.25 µs` | `199.49 µs` | `  2.65 ms` |
+| (api) find-my-way     | ` 79.52 µs/iter` | ` 69.05 µs` | ` 72.58 µs` | `167.28 µs` | `609.18 µs` |
+| (api) hono - pattern  | ` 92.03 µs/iter` | ` 82.87 µs` | ` 86.97 µs` | `173.29 µs` | `461.10 µs` |
+| (api) hono - regexp   | ` 49.63 µs/iter` | ` 35.23 µs` | ` 44.50 µs` | ` 94.92 µs` | `  5.83 ms` |
+| (api) hono - trie     | `240.32 µs/iter` | `220.36 µs` | `235.02 µs` | `480.32 µs` | `822.80 µs` |
+
+You can check the benchmark [here](https://github.com/mapljs/framework/tree/main/bench/routers).

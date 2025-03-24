@@ -9,11 +9,6 @@ As in previous examples, handlers can return [anything](https://developer.mozill
 that is supported by the [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) constructor.
 ```ts
 app.get('/', () => 'Hi');
-// Is a shorthand for
-app.get('/', {
-  type: 'buffer',
-  fn: () => 'Hi'
-});
 ```
 
 The handler can access the [Context](/api/context) object, which contains the original request object and response options.
@@ -27,9 +22,9 @@ app.get('/', (c) => {
 });
 
 // Context always comes after the special argument of the function
-app.get('/*/name', (params, c) => {
+app.get('/:user/name', (user, c) => {
   c.headers.push(['Server', 'Mapl']);
-  return params[0];
+  return user;
 });
 ```
 
@@ -61,63 +56,24 @@ Mapl also includes handlers to send different types of data.
 
 - To return HTML directly without appending headers:
     ```ts
-    app.get('/page/*', {
-      type: 'html',
-      fn: (params) => `<p>${params[0]}</p>`
-    });
+    app.get('/page/*', (link) => `<p>${link}</p>`, { type: 'html' });
     ```
 
-    This is in fact faster than writing it using normal handlers (try to see it yourself :]).
+    This is faster than writing it using normal handlers (try benchmarking it yourself :]).
 
 - To return JSON directly without appending headers:
     ```ts
-    app.get('/info/*', {
-      type: 'json',
-      fn: (params) => ({
-        name: params[0],
+    app.get(
+      '/info/*',
+      (info) => ({
+        name: info,
         id: Math.random()
-      })
-    });
+      }),
+      { type: 'json' }
+    );
     ```
 
     This is also faster than writing it using normal handlers, as it uses the same optimization as HTML handlers.
 
-- To return static content:
-    ```ts
-    app.get('/', {
-      type: 'static',
-      body: 'Hi',
-      options: { status: 200 }
-    });
-    ```
-
-    The `body` and `options` get cached under the hood to reduce unnecessary operations on every request.
-
 If the handler function returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) object,
 it must be marked as an `async` function for the compiler to detect and generate correct code.
-
-### Prebuilts
-This feature runs the handler with a sample `GET` request to the corresponding path, the
-result [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) is cached and served later in request time.
-```ts
-app.build('/', () => 'Hi');
-```
-
-You can do any expensive operations inside the handler without affecting request performance.
-```ts
-app.build('/', (c) => {
-  const result = runExpensiveOperation(c.req);
-  return `Your result: ${result}`;
-});
-```
-
-This is designed to mimic [Bun static routes](https://bun.sh/docs/api/http#static-routes) behavior,
-which means `HEAD` and `OPTIONS` methods are also handled automatically.
-
-You can also make it runs faster in Bun by handing the routes to Bun directly:
-```ts
-const result = await jitc(app, {
-  exposeStatic: true
-});
-result.static;
-```

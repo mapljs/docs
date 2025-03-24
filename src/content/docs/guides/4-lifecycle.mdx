@@ -10,7 +10,7 @@ Mapl request lifecycle can be illustrated as follows:
 ## Middlewares
 Middlewares are functions that get executed on every request, after the route matching phase.
 ```ts
-app.use((c) => {
+app.apply((c) => {
   c.headers.push(['Server', 'Mapl']);
 });
 ```
@@ -19,7 +19,6 @@ The above snippet adds the `Server` header to every response if the request path
 
 Note that middlewares share the same limitation as handlers, as if a middleware function returns a
 [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) object it must be marked as an `async` function.
-
 
 ### Setters
 Setter is a type of middleware that its returned value will be attached to the [Context](/api/context) object.
@@ -36,37 +35,17 @@ app
   .get('/time', (c) => `Current time: ${c.date.toUTCString()}`);
 ```
 
-### Exceptions
-Exception is a much faster and lighter version of [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
+### Errors
+Mapl uses a much lighter and faster error implementation based on [`safe-throw`](https://npmjs.com/package/safe-throw).
 
+To handle exceptions, use `app.err`:
 ```ts
-import { staticException, dynamicException } from '@mapl/app';
+import * as st from 'safe-throw';
 
-// This exception cannot hold payloads
-const authException = staticException();
-
-// This exception can hold payloads
-const bodyException = dynamicException<string>();
-```
-
-To handle exceptions, use `app.catch` or `app.catchAll`:
-```ts
-// Handle static exception
-app.catch(authException, (c) => {
-  c.status = 403;
-  return 'Forbidden!';
-});
-
-// Handle dynamic exception
-app.catch(bodyException, (payload, c) => {
+// Error type is inferred based on previous middlewares
+app.err((error, c) => {
   c.status = 400;
-  return `Body should be longer than 8 chars, instead recieved: ${payload}`;
-});
-
-// Handle all uncaught exceptions
-app.catchAll((c) => {
-  c.status = 400;
-  return 'Bad request!';
+  return st.payload(error);
 });
 ```
 
@@ -75,12 +54,15 @@ Exceptions are meant to be used with validators and parsers to handle edge cases
 ### Validators
 Validator is a type of middleware to validate requests.
 ```ts
-app.validate(async (c) => {
+import * as st from 'safe-throw';
+
+const bodyTooShort = st.err('Body too short');
+
+app.check(async (c) => {
   const body = await c.req.text();
 
   if (body.length < 9)
-    // Return the error with the payload
-    return bodyException.init(body);
+    return bodyTooShort;
 });
 ```
 
@@ -92,6 +74,8 @@ a `400 Bad Request` response will be returned.
 ### Parsers
 Parsers can return exceptions like validators, but if the return value is anything other than an exception it gets attached to the context.
 ```ts
+const invalidAuthHeader = st.err('Invalid Authorization header');
+
 // Chaining should be used so you get type hint
 app
   .parse('token', (c) => {
@@ -99,10 +83,17 @@ app
 
     // Get the bearer token
     return authHeader === null || !authHeader.startsWith('Bearer ')
-      // You can return the static exception directly
-      ? authException
+      ? invalidAuthHeader
       // Return the value to be attached to the context
       : authHeader.slice(7);
   })
-  .get('/', (c) => `Your token: ${c.token}`);
+  .get('/', (c) => `Your token: ${c.token}`)
+
+  // Handle returned errors
+  .err((error, c) => {
+    c.status = 403;
+
+    // Return the text of the error
+    return st.payload(error);
+  });
 ```

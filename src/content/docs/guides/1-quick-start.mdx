@@ -5,25 +5,22 @@ description: Getting started with Mapl.
 
 import { Steps } from '@astrojs/starlight/components';
 
-You can install Mapl from [npm](https://npmjs.com/package/@mapl/app).
+You can install Mapl from [npm](https://npmjs.com/package/@mapl/web).
 ```sh
-npm i @mapl/app
+npm i @mapl/web
 ```
 
 Create a new file and add the following code:
 ```ts title="server.ts"
-import { jitc, router } from '@mapl/app';
+import { compile, router } from '@mapl/web';
 
 // Create a router
 const app = router()
   // Add a route that matches GET requests to '/'
   .get('/', () => 'Hi');
 
-// Build the app
-const result = await jitc(app);
-
 // Export the function to be executed
-export default { fetch: result.fetch };
+export default { fetch: compile(app) };
 ```
 
 Then run the file with [Bun](//bun.sh) or [Deno](//deno.land).
@@ -63,10 +60,9 @@ And done! We just build a simple web server running on [127.0.0.1:3000](http://1
       .get('/hello', () => 'Hello');
     ```
 
-3. Then we use the compiler to create an object that contains a request handler.
+3. Then we use the compiler to compile to a request handler.
     ```ts
-    const result = await jitc(app);
-    result.fetch; // This is the request handler
+    const fetch = compile(app);
     ```
 
 4. Finally we export the function correctly for the runtime to execute.
